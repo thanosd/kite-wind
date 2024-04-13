@@ -10,45 +10,45 @@
 #include <RH_RF95.h>
 
 // First 3 here are boards w/radio BUILT-IN. Boards using FeatherWing follow.
-#if defined (__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
-  #define RFM95_CS    8
-  #define RFM95_INT   7
-  #define RFM95_RST   4
+#if defined(__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
+#define RFM95_CS 8
+#define RFM95_INT 7
+#define RFM95_RST 4
 
 #elif defined(ADAFRUIT_FEATHER_M0) || defined(ADAFRUIT_FEATHER_M0_EXPRESS) || defined(ARDUINO_SAMD_FEATHER_M0)  // Feather M0 w/Radio
-  #define RFM95_CS    8
-  #define RFM95_INT   3
-  #define RFM95_RST   4
+#define RFM95_CS 8
+#define RFM95_INT 3
+#define RFM95_RST 4
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_RFM)  // Feather RP2040 w/Radio
-  #define RFM95_CS   16
-  #define RFM95_INT  21
-  #define RFM95_RST  17
+#define RFM95_CS 16
+#define RFM95_INT 21
+#define RFM95_RST 17
 
-#elif defined (__AVR_ATmega328P__)  // Feather 328P w/wing
-  #define RFM95_CS    4  //
-  #define RFM95_INT   3  //
-  #define RFM95_RST   2  // "A"
+#elif defined(__AVR_ATmega328P__)  // Feather 328P w/wing
+#define RFM95_CS 4                 //
+#define RFM95_INT 3                //
+#define RFM95_RST 2                // "A"
 
 #elif defined(ESP8266)  // ESP8266 feather w/wing
-  #define RFM95_CS    2  // "E"
-  #define RFM95_INT  15  // "B"
-  #define RFM95_RST  16  // "D"
+#define RFM95_CS 2      // "E"
+#define RFM95_INT 15    // "B"
+#define RFM95_RST 16    // "D"
 
 #elif defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2) || defined(ARDUINO_NRF52840_FEATHER) || defined(ARDUINO_NRF52840_FEATHER_SENSE)
-  #define RFM95_CS   10  // "B"
-  #define RFM95_INT   9  // "A"
-  #define RFM95_RST  11  // "C"
+#define RFM95_CS 10   // "B"
+#define RFM95_INT 9   // "A"
+#define RFM95_RST 11  // "C"
 
 #elif defined(ESP32)  // ESP32 feather w/wing
-  #define RFM95_CS   33  // "B"
-  #define RFM95_INT  27  // "A"
-  #define RFM95_RST  13
+#define RFM95_CS 33   // "B"
+#define RFM95_INT 27  // "A"
+#define RFM95_RST 13
 
 #elif defined(ARDUINO_NRF52832_FEATHER)  // nRF52832 feather w/wing
-  #define RFM95_CS   11  // "B"
-  #define RFM95_INT  31  // "C"
-  #define RFM95_RST   7  // "A"
+#define RFM95_CS 11                      // "B"
+#define RFM95_INT 31                     // "C"
+#define RFM95_RST 7                      // "A"
 
 #endif
 
@@ -87,12 +87,13 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 void setup() {
+  Serial.println("Bootup!");
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
   while (!Serial) delay(1);
-  delay(100);
+  //delay(100);
 
   Serial.println("Feather LoRa TX Test!");
 
@@ -105,16 +106,19 @@ void setup() {
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
     Serial.println("Uncomment '#define SERIAL_DEBUG' in RH_RF95.cpp for detailed debug info");
-    while (1);
+    while (1)
+      ;
   }
   Serial.println("LoRa radio init OK!");
 
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
-    while (1);
+    while (1)
+      ;
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+  Serial.print("Set Freq to: ");
+  Serial.println(RF95_FREQ);
 
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
 
@@ -126,39 +130,57 @@ void setup() {
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
 
+const int analogPin = A0;  // pin A0
+int analogValue = 0;
+
+int transmitsPerKeepAlive = 60;
+int remainingTransmits = 0;
+
 void loop() {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
-  Serial.println("Transmitting..."); // Send a message to rf95_server
 
-  char radiopacket[20] = "Hello Daphne #     ";
-  itoa(packetnum++, radiopacket+13, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
-  radiopacket[19] = 0;
+  if (rf95.available()) {
+      Serial.print("Goood morning.\n");
+    // Should be a message for us now
+    char wakeMessage[6];
+    uint8_t len = sizeof(wakeMessage);
 
-  Serial.println("Sending...");
+    if (rf95.recv((uint8_t *)&wakeMessage, &len)) {
+      digitalWrite(LED_BUILTIN, HIGH);
+      // RH_RF95::printBuffer("Received: ", buf, len);
+      Serial.print("Got: ");
+      Serial.print(wakeMessage);
+      Serial.print("  RSSI: ");
+      Serial.println(rf95.lastRssi(), DEC);
+      digitalWrite(LED_BUILTIN, LOW);
+
+      if (strcmp(wakeMessage, "Alive") == 0) {
+        remainingTransmits = transmitsPerKeepAlive;
+      }
+
+
+    } else {
+      Serial.println("Receive failed");
+    }
+  }
+
+  if (remainingTransmits == 0) {
+    return;
+  }
+
+  // Read the analog value from pin A0
+  analogValue = analogRead(analogPin);
+  Serial.printf("Sending (%d): ", remainingTransmits);
+  Serial.println(analogValue);
+
   delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
+  rf95.send((uint8_t *)&analogValue, sizeof(analogValue));
 
   Serial.println("Waiting for packet to complete...");
   delay(10);
   rf95.waitPacketSent();
-  // Now wait for a reply
-  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-  uint8_t len = sizeof(buf);
 
-  Serial.println("Waiting for reply...");
-  if (rf95.waitAvailableTimeout(1000)) {
-    // Should be a reply message for us now
-    if (rf95.recv(buf, &len)) {
-      Serial.print("Got reply: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
-    } else {
-      Serial.println("Receive failed");
-    }
-  } else {
-    Serial.println("No reply, is there a listener around?");
-  }
+  remainingTransmits--;
 
+  rf95.sleep();
+  delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
 }
