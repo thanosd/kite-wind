@@ -1,0 +1,11 @@
+[Unit]
+Description=Kite Wind
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/thanos/kite-wind/proxy/kitewind/bin/python3 /home/thanos/kite-wind/proxy/main.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
