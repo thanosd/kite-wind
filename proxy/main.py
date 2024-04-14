@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import serial.tools.list_ports
 from serial.tools.list_ports_common import ListPortInfo
 import os
-
+from typing import List, Optional
 load_dotenv()
 
 ports = serial.tools.list_ports.comports()
@@ -25,7 +25,7 @@ aio = Client(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
 wind_feed_name = 'kite-wind'
 rssi_feed_name = 'rssi'
 
-def get_receiver_port(ports : list[ListPortInfo]) -> ListPortInfo | None:
+def get_receiver_port(ports : List[ListPortInfo]) -> Optional[ListPortInfo]:
     for port, desc, hwid in sorted(ports):
         if hwid == HARDWARE_ID:
             return port
