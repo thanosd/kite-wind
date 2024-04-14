@@ -20,7 +20,7 @@ if HARDWARE_ID is None:
     exit(1)
 else:
     print(f"Using hardware ID: {HARDWARE_ID}")
-    
+
 from Adafruit_IO import Client, Feed, Data
 aio = Client(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
 
@@ -30,7 +30,7 @@ rssi_feed_name = 'rssi'
 def get_receiver_port(ports : List[ListPortInfo]):
     for port, desc, hwid in sorted(ports):
         print(f"{port} {desc} {hwid}")
-        if hwid == HARDWARE_ID:
+        if hwid.contains(HARDWARE_ID):
             return port
     return None
 
