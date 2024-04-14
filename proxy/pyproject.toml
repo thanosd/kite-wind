@@ -6,7 +6,7 @@ authors = ["Thanos Diacakis <thanos@diacakis.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.9"
 pyserial = "^3.5"
 adafruit-io = "^2.7.2"
 setuptools = "^69.5.1"
