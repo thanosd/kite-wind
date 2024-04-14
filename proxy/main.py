@@ -18,7 +18,9 @@ HARDWARE_ID = os.getenv('HARDWARE_ID')
 if HARDWARE_ID is None:
     print("Please set HARDWARE_ID in .env")
     exit(1)
-
+else:
+    print(f"Using hardware ID: {HARDWARE_ID}")
+    
 from Adafruit_IO import Client, Feed, Data
 aio = Client(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
 
