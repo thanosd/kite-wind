@@ -30,7 +30,7 @@ rssi_feed_name = 'rssi'
 def get_receiver_port(ports : List[ListPortInfo]):
     for port, desc, hwid in sorted(ports):
         print(f"{port} {desc} {hwid}")
-        if hwid.contains(HARDWARE_ID):
+        if hwid.find(HARDWARE_ID) != -1:
             return port
     return None
 
