@@ -86,16 +86,16 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+
 void setup() {
   Serial.println("Bootup!");
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
-  while (!Serial) delay(1);
-  //delay(100);
-
-  Serial.println("Feather LoRa TX Test!");
+  // while (!Serial) delay(1);
+  
+  Serial.println("Kitewind Meter Booting Up...");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -128,59 +128,26 @@ void setup() {
   rf95.setTxPower(23, false);
 }
 
-int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 const int analogPin = A0;  // pin A0
 int analogValue = 0;
 
-int transmitsPerKeepAlive = 60;
-int remainingTransmits = 0;
 
 void loop() {
 
-  if (rf95.available()) {
-      Serial.print("Goood morning.\n");
-    // Should be a message for us now
-    char wakeMessage[6];
-    uint8_t len = sizeof(wakeMessage);
-
-    if (rf95.recv((uint8_t *)&wakeMessage, &len)) {
-      digitalWrite(LED_BUILTIN, HIGH);
-      // RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.print(wakeMessage);
-      Serial.print("  RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
-      digitalWrite(LED_BUILTIN, LOW);
-
-      if (strcmp(wakeMessage, "Alive") == 0) {
-        remainingTransmits = transmitsPerKeepAlive;
-      }
-
-
-    } else {
-      Serial.println("Receive failed");
-    }
-  }
-
-  if (remainingTransmits == 0) {
-    return;
-  }
 
   // Read the analog value from pin A0
   analogValue = analogRead(analogPin);
-  Serial.printf("Sending (%d): ", remainingTransmits);
-  Serial.println(analogValue);
+  Serial.printf("Wind: %d:\n", analogValue);
 
+  
   delay(10);
   rf95.send((uint8_t *)&analogValue, sizeof(analogValue));
 
-  Serial.println("Waiting for packet to complete...");
+  // Serial.println("Waiting for packet to complete...");
   delay(10);
   rf95.waitPacketSent();
 
-  remainingTransmits--;
-
   rf95.sleep();
-  delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
+  delay(5000);  // Wait 1 second between transmits, could also 'sleep' here!
 }

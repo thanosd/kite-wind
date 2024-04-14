@@ -85,7 +85,7 @@
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
-
+/*
 void keepAlive() {
   char wakeupMessage[6] = "Alive";
 
@@ -96,7 +96,7 @@ void keepAlive() {
   Serial.println("Waiting for packet to complete...");
   delay(10);
   rf95.waitPacketSent();
-}
+}*/
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -139,7 +139,7 @@ void setup() {
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 
-  keepAlive();
+  //keepAlive();
 }
 
 int keepAliveEvery = 30;
@@ -148,11 +148,12 @@ int keepAliveCounter = 0;
 
 void loop() {
 
+  /*
   // Send a keep alive periodically.
   if (keepAliveCounter >= keepAliveEvery) {
     keepAlive();
     keepAliveCounter = 0;
-  }
+  }*/
 
   if (rf95.available()) {
     // Should be a message for us now
@@ -162,10 +163,11 @@ void loop() {
     if (rf95.recv((uint8_t *)&val, &len)) {
       digitalWrite(LED_BUILTIN, HIGH);
       // RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
+      Serial.print("{\"wind\": ");
       Serial.print(val);
-      Serial.print("  RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
+      Serial.print(",  \"rssi\": ");
+      Serial.print(rf95.lastRssi(), DEC);
+      Serial.println("}");
 
       digitalWrite(LED_BUILTIN, LOW);
       keepAliveCounter++;
