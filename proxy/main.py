@@ -1,4 +1,6 @@
 import json
+
+import requests.exceptions
 from dotenv import load_dotenv
 import serial.tools.list_ports
 from serial.tools.list_ports_common import ListPortInfo
@@ -47,8 +49,11 @@ with serial.Serial(receiver_port, 115200, timeout=1) as ser:
             data = json.loads(line)
         except json.JSONDecodeError:
             continue
-        wind_data = Data(value=data['wind'])
-        aio.create_data(wind_feed_name, wind_data)
-        rssi_data = Data(value=data['rssi'])
-        aio.create_data(rssi_feed_name, rssi_data)
+        try:
+            wind_data = Data(value=data['wind'])
+            aio.create_data(wind_feed_name, wind_data)
+            rssi_data = Data(value=data['rssi'])
+            aio.create_data(rssi_feed_name, rssi_data)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {e}")
         print(data)
