@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "proxy"
+version = "0.1.0"
+description = ""
+authors = ["Thanos Diacakis <thanos@diacakis.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyserial = "^3.5"
+adafruit-io = "^2.7.2"
+setuptools = "^69.5.1"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
